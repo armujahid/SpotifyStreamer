@@ -1,18 +1,19 @@
 package me.armujahid.spotifystreamer;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
+import android.provider.Settings;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ import kaaes.spotify.webapi.android.models.ArtistsPager;
 public class SearchActivityFragment extends Fragment {
 
     final String LOG_TAG = Activity.class.getName();
-    private customAdapter mCustomAdapter;
+    private ArtistAdapter mArtistAdapter;
 
 
     public SearchActivityFragment() {
@@ -53,8 +54,8 @@ public class SearchActivityFragment extends Fragment {
 //                output.setText(input.getText());
             }
         });
-        mCustomAdapter =
-                new customAdapter(
+        mArtistAdapter =
+                new ArtistAdapter(
                         getActivity(), // The current context (this activity)
                         R.layout.linearlayout_artist, // The name of the layout ID.
                         new ArrayList<customArtist>(),
@@ -63,12 +64,24 @@ public class SearchActivityFragment extends Fragment {
                 );
         // Get a reference to the ListView, and attach this adapter to it.
         ListView listView = (ListView) rootView.findViewById(R.id.listview_artist);
-        listView.setAdapter(mCustomAdapter);
+        listView.setAdapter(mArtistAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                customArtist artist = mArtistAdapter.getItem(position);
+                Intent intent = new Intent(getActivity(), TopTracksActivity.class)
+                        .putExtra(Intent.EXTRA_TEXT, artist.id);
+                startActivity(intent);
+            }
+        });
         return rootView;
 
     }
 
     public class FetchArtistTask extends AsyncTask<String, Void, customArtist[]> {
+
+        CharSequence toasttext = "No Artist Found :)";
 
         @Override
         protected customArtist[] doInBackground(String... params) {
@@ -78,7 +91,15 @@ public class SearchActivityFragment extends Fragment {
             }
             SpotifyApi api = new SpotifyApi();
             SpotifyService spotify = api.getService();
-            ArtistsPager results = spotify.searchArtists(params[0]);
+            ArtistsPager results=null;
+            try{
+                results = spotify.searchArtists(params[0]);
+            }
+            catch(Exception ex)
+            {
+                startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+                toasttext = "No Internet Connection";
+            }
             if (results == null)
             {
                 Log.e(LOG_TAG,"Artistpager is null");
@@ -122,19 +143,18 @@ public class SearchActivityFragment extends Fragment {
         @Override
         protected void onPostExecute(customArtist[] result) {
             if (result != null) {
-                mCustomAdapter.clear();
+                mArtistAdapter.clear();
                 for(customArtist artist : result) {
-                    mCustomAdapter.add(artist);
+                    mArtistAdapter.add(artist);
                 }
                 // New data is back from the server.  Hooray!
             }
             else
             {
                 Context context = getActivity();
-                CharSequence text = "No Artist Found :)";
                 int duration = Toast.LENGTH_SHORT;
 
-                Toast toast = Toast.makeText(context, text, duration);
+                Toast toast = Toast.makeText(context, toasttext, duration);
                 toast.show();
             }
         }
