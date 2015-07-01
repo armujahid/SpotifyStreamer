@@ -14,16 +14,16 @@ import com.squareup.picasso.Picasso;
 import java.util.List;
 
 /**
- * Created by Abdul-Rauf on 28/06/2015.
+ * Created by Abdul-Rauf on 01/07/2015.
  */
-public class customAdapter extends ArrayAdapter<customArtist> {
+public class TrackAdapter extends ArrayAdapter<customTrack> {
     private Context mContext;
-    private  LayoutInflater mInflater;
+    private LayoutInflater mInflater;
     int mResource;
     int imageID;
     int textID;
 
-    public customAdapter(Context context, int resource, List<customArtist> objects, int iid, int tid) {
+    public TrackAdapter(Context context, int resource, List<customTrack> objects, int iid, int tid) {
         super(context, resource, objects);
         mContext = context;
         mResource = resource;
@@ -50,10 +50,10 @@ public class customAdapter extends ArrayAdapter<customArtist> {
 //                //  If no custom field is assigned, assume the whole resource is a TextView
 //                textView = (TextView) view;
 //            } else {
-                //  Otherwise, find the TextView field within the layout
+            //  Otherwise, find the TextView field within the layout
 
-                textView = (TextView) view.findViewById(textID);
-                imageView = (ImageView) view.findViewById(imageID);
+            textView = (TextView) view.findViewById(textID);
+            imageView = (ImageView) view.findViewById(imageID);
 
         }
         catch (ClassCastException e) {
@@ -62,7 +62,7 @@ public class customAdapter extends ArrayAdapter<customArtist> {
                     "ArrayAdapter requires the resource ID to be a TextView", e);
         }
 
-        customArtist item = getItem(position);
+        customTrack item = getItem(position);
         textView.setText(item.name);
         if (item.image != null) {
             Picasso.with(mContext).load(item.image.url).resize(64, 64).into(imageView);
